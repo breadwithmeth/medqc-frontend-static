@@ -1,679 +1,306 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MEDQC — Панель качества (lite)</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MedQC — Demo UI</title>
   <style>
-    :root{
-      --bg:#f8fafc; --panel:#fff; --muted:#64748b; --text:#0f172a; --brand:#0ea5e9;
-      --ok:#10b981; --err:#ef4444; --warn:#f59e0b; --line:#e2e8f0;
+    :root { --gap: 14px; --radius: 12px; --border: 1px solid #e5e7eb; --bg: #f9fafb; --bg2: #ffffff; --muted:#6b7280; --ok:#16a34a; --warn:#d97706; --err:#dc2626; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background: var(--bg); color: #111827; }
+    header { position: sticky; top: 0; background: var(--bg2); border-bottom: var(--border); padding: 12px 18px; display: flex; gap: 10px; align-items: center; justify-content: space-between; z-index: 1;}
+    header h1 { font-size: 16px; margin: 0; }
+    main { max-width: 980px; margin: 22px auto; padding: 0 16px 40px; display: grid; gap: var(--gap); }
+    section, .card { background: var(--bg2); border: var(--border); border-radius: var(--radius); padding: 16px; }
+    h2 { margin: 0 0 8px; font-size: 18px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--gap); }
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+    input[type="text"], input[type="url"], input[type="file"], select, textarea {
+      width: 100%; padding: 10px 12px; border-radius: 10px; border: var(--border); background: #fff; font: inherit;
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#f8fafc,#fff);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    .container{max-width:1200px;margin:0 auto;padding:24px}
-    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-    h1{font-size:20px;margin:0 0 4px}
-    .muted{color:var(--muted)}
-    .row{display:grid;gap:12px}
-    .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
-    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-    .card h3{margin:0;padding:14px 16px;border-bottom:1px solid var(--line);font-size:14px}
-    .card .content{padding:16px}
-    label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
-    input[type=text],input[type=password],input[type=datetime-local],textarea,select{
-      width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;outline:none
-    }
-    textarea{min-height:140px;font-family:ui-monospace,Menlo,Consolas,monospace}
-    button{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}
-    button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-    button.ghost{background:#fff}
-    button:disabled{opacity:.6;cursor:not-allowed}
-    .badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;border:1px solid var(--line);background:#f1f5f9}
-    .badge.ok{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
-    .badge.err{background:#fef2f2;color:#991b1b;border-color:#fecaca}
-    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .tab{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer}
-    .tab.active{background:#e6f4ff;border-color:#bfdbfe}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:8px 10px;text-align:left;vertical-align:top}
-    thead th{position:sticky;top:0;background:#f8fafc;border-bottom:1px solid var(--line);z-index:1}
-    tbody tr{border-top:1px solid var(--line)}
-    .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-    .pill{padding:2px 8px;border-radius:999px;font-size:12px;display:inline-block}
-    .sev-critical{background:#fee2e2;color:#991b1b}
-    .sev-major{background:#ffedd5;color:#9a3412}
-    .sev-minor{background:#ecfdf5;color:#065f46}
-    .toast{position:fixed;right:16px;bottom:16px;background:#fff;border:1px solid var(--line);padding:10px 12px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.08)}
-    .toast.ok{border-color:#a7f3d0;background:#ecfdf5;color:#065f46}
-    .toast.err{border-color:#fecaca;background:#fef2f2;color:#991b1b}
-    .busy{position:fixed;right:16px;bottom:64px;background:#fff;border:1px solid var(--line);padding:8px 12px;border-radius:999px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
-    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
-    .hr{height:1px;background:var(--line);margin:8px 0}
-    iframe{border:0;width:100%;height:70vh;background:#fff}
-    .flex{display:flex;gap:8px;align-items:center}
-    .right{display:flex;gap:8px;align-items:center;justify-content:flex-end}
-    .mutebar{color:var(--muted);font-size:12px}
-    .overflow{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+    textarea { min-height: 80px; }
+    button { border: 0; padding: 10px 14px; border-radius: 10px; background: #111827; color: #fff; cursor: pointer; font: inherit; }
+    button.secondary { background: #374151; }
+    button.ghost { background: transparent; border: var(--border); color: #111827; }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .pill { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: var(--border); background: #f3f4f6; }
+    .grid { display: grid; gap: var(--gap); }
+    .kvs { display: grid; grid-template-columns: 220px 1fr; gap: 8px 14px; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 10px 8px; border-bottom: var(--border); vertical-align: top; }
+    thead th { position: sticky; top: 48px; background: var(--bg2); z-index: 1; }
+    .sev-INFO { color: #0ea5e9; }
+    .sev-WARN { color: var(--warn); }
+    .sev-ERROR { color: var(--err); }
+    .sev-OK { color: var(--ok); }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 6px; }
+    .error { border-color: var(--err); }
+    .center { display: grid; place-items: center; }
+    .small { font-size: 13px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div>
-        <h1>MEDQC — Панель качества (lite)</h1>
-        <div class="muted">REST-клиент для ingest → pipeline → rules → report</div>
-      </div>
-      <div id="healthTag" class="badge">нет связи</div>
-    </header>
-
-    <!-- Настройки -->
-    <div class="card">
-      <h3>Настройки подключения</h3>
-      <div class="content row grid-4">
-        <div>
-          <label>API Base URL</label>
-          <input type="text" id="baseUrl" placeholder="http://localhost:8000">
-        </div>
-        <div class="row">
-          <div>
-            <label>API Key (X-API-Key)</label>
-            <input type="password" id="apiKey" placeholder="оставь пустым, если не требуется">
-          </div>
-        </div>
-        <div class="right">
-          <button id="btnCheck" class="ghost">Проверить</button>
-          <button id="btnSave" class="primary">Сохранить</button>
-        </div>
-        <div class="mutebar">Параметры сохраняются в localStorage на этом устройстве</div>
-      </div>
+  <header>
+    <h1>MedQC — загрузка, проверка и отчёты</h1>
+    <div class="toolbar">
+      <label>
+        <span class="muted">Базовый путь API</span>
+        <input id="apiBase" type="text" value="/" />
+      </label>
+      <button class="ghost small" id="btnProbe">Проба /ingest vs /v1/ingest</button>
     </div>
+  </header>
 
-    <!-- Tabs -->
-    <div class="tabs" id="tabs">
-      <div class="tab active" data-tab="ingest">Загрузка</div>
-      <div class="tab" data-tab="doc">Документ</div>
-      <div class="tab" data-tab="report">Отчёт</div>
-      <div class="tab" data-tab="norms">Нормы</div>
-      <div class="tab" data-tab="dicts">Справочники</div>
-    </div>
-
-    <!-- INGEST -->
-    <section id="tab-ingest" class="tabpane">
-      <div class="card" style="margin-top:8px">
-        <h3>Загрузить файл</h3>
-        <div class="content row grid-4">
-          <div class="row grid-2" style="grid-column:span 2">
-            <div>
-              <label>Файл</label>
-              <input type="file" id="file">
-            </div>
-            <div>
-              <label>Автор</label>
-              <input type="text" id="author" placeholder="Иванова И.И.">
-            </div>
-            <div>
-              <label>ЛПУ</label>
-              <input type="text" id="facility" placeholder="ГКБ №1">
-            </div>
-            <div>
-              <label>Отделение</label>
-              <input type="text" id="dept" placeholder="Инфекционное">
-            </div>
-            <div>
-              <label>Дата поступления</label>
-              <input type="text" id="admit" placeholder="2025-08-21T10:15">
-            </div>
-          </div>
-          <div class="right" style="grid-column:span 2">
-            <button id="btnIngest" class="primary">Загрузить</button>
-            <button id="btnRunAll" class="ghost" disabled>Сразу запустить конвейер</button>
-          </div>
-          <div class="mutebar" id="currentDoc">doc_id: —</div>
+  <main class="grid">
+    <section id="upload">
+      <h2>1) Загрузка документа</h2>
+      <div class="row">
+        <label>
+          <span>Файл</span>
+          <input id="file" type="file" />
+        </label>
+        <div class="row3">
+          <label>
+            <span>Подразделение (dept, опционально)</span>
+            <input id="dept" type="text" placeholder="therapy / surgery / ...">
+          </label>
+          <label>
+            <span>Источник (source, опционально)</span>
+            <input id="source" type="text" placeholder="upload / email / scan">
+          </label>
+          <label>
+            <span>&nbsp;</span>
+            <button id="btnUpload">Загрузить</button>
+          </label>
         </div>
       </div>
+      <p class="muted">Эндпоинт ожидается: <code>POST {base}/ingest</code> с <code>multipart/form-data</code> (поля: <code>file</code>, <code>dept?</code>, <code>source?</code>).</p>
+      <div id="uploadResult" class="small"></div>
     </section>
 
-    <!-- DOC -->
-    <section id="tab-doc" class="tabpane" style="display:none">
-      <div class="card" style="margin-top:8px">
-        <h3>Документ / Проверка</h3>
-        <div class="content">
-          <div class="toolbar">
-            <div style="flex:1">
-              <label>doc_id</label>
-              <input type="text" id="docId" placeholder="KZ-..." />
-            </div>
-            <button id="btnOpen" class="ghost">Открыть</button>
-            <button id="btnPipeline" class="primary">Перепроверить</button>
-          </div>
+    <section id="validate">
+      <h2>2) Проверка</h2>
+      <div class="row3">
+        <label>
+          <span>doc_id</span>
+          <input id="docId" type="text" placeholder="из шага 1">
+        </label>
+        <label>
+          <span>&nbsp;</span>
+          <button id="btnValidate">Проверить</button>
+        </label>
+        <label>
+          <span>&nbsp;</span>
+          <button class="secondary" id="btnReport">Получить отчёт</button>
+        </label>
+      </div>
+      <p class="muted">Эндпоинты: <code>GET {base}/validate/{doc_id}</code> и <code>GET {base}/report/{doc_id}</code>.</p>
+      <div id="valResult"></div>
+    </section>
 
-          <div class="row grid-4" style="margin-top:12px" id="docMetaRow" hidden>
-            <div class="card" style="grid-column:span 2">
-              <h3>Метаданные</h3>
-              <div class="content">
-                <div class="row grid-2">
-                  <div><div class="muted">ЛПУ</div><div id="metaFacility">—</div></div>
-                  <div><div class="muted">Отделение</div><div id="metaDept">—</div></div>
-                  <div><div class="muted">Автор</div><div id="metaAuthor">—</div></div>
-                  <div><div class="muted">Поступление</div><div id="metaAdmit">—</div></div>
-                </div>
-              </div>
-            </div>
-            <div class="card">
-              <h3>Счётчики</h3>
-              <div class="content">
-                <div>Секции: <b id="cntSections">0</b></div>
-                <div>События: <b id="cntEvents">0</b></div>
-                <div>Сущности: <b id="cntEntities">0</b></div>
-                <div>Нарушения: <b id="cntViol">0</b></div>
-              </div>
-            </div>
-            <div class="card">
-              <h3>Действия</h3>
-              <div class="content">
-                <button id="btnOpenReport" class="ghost">Открыть отчёт</button>
-                <div class="hr"></div>
-                <button id="btnPipeline2" class="primary">Запустить конвейер</button>
-              </div>
-            </div>
-          </div>
+    <section id="report">
+      <h2>3) Отчёт по нарушениям</h2>
+      <div id="reportSummary" class="kvs"></div>
+      <div id="violTableWrap"></div>
+    </section>
 
-          <div class="card" style="margin-top:12px">
-            <h3>Нарушения</h3>
-            <div class="content">
-              <div class="overflow" style="max-height:280px">
-                <table>
-                  <thead><tr><th>Правило</th><th>Сообщение</th><th>Уровень</th></tr></thead>
-                  <tbody id="violTable"><tr><td colspan="3" class="muted">Нет данных</td></tr></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:12px">
-            <h3>События</h3>
-            <div class="content">
-              <div class="toolbar">
-                <div style="flex:1">
-                  <label>Тип</label><input type="text" id="evKind" placeholder="daily_note|ecg|...">
-                </div>
-                <div>
-                  <label>С</label><input type="text" id="evSince" placeholder="2025-08-21T00:00">
-                </div>
-                <div>
-                  <label>По</label><input type="text" id="evUntil" placeholder="2025-08-22T00:00">
-                </div>
-                <button id="btnFilterEv" class="ghost">Фильтр</button>
-                <button id="btnResetEv" class="ghost">Сброс</button>
-              </div>
-              <div class="overflow" style="max-height:320px;margin-top:8px">
-                <table>
-                  <thead><tr><th>Время</th><th>Тип</th><th>Секция</th><th>Детали</th></tr></thead>
-                  <tbody id="evTable"><tr><td colspan="4" class="muted">Нет данных</td></tr></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:12px">
-            <h3>Сущности (первые 50)</h3>
-            <div class="content">
-              <div class="overflow" style="max-height:260px">
-                <table>
-                  <thead><tr><th>Тип</th><th>Секция</th><th>Диапазон</th><th>Значение</th></tr></thead>
-                  <tbody id="entTable"><tr><td colspan="4" class="muted">Нет данных</td></tr></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-        </div>
+    <section class="card">
+      <h2>Справка</h2>
+      <div class="grid small">
+        <div>Если ваш API смонтирован на <code>/v1</code>, укажите в поле выше <code>/v1</code>.</div>
+        <div>Ошибки CORS решаются на бэкенде (добавьте соответствующие origin'ы).</div>
       </div>
     </section>
-
-    <!-- REPORT -->
-    <section id="tab-report" class="tabpane" style="display:none">
-      <div class="card" style="margin-top:8px">
-        <h3>Отчёт по документу</h3>
-        <div class="content">
-          <div class="toolbar">
-            <div style="flex:1">
-              <label>doc_id</label>
-              <input type="text" id="docIdRpt" placeholder="KZ-...">
-            </div>
-            <label class="flex"><input type="checkbox" id="maskPii" checked style="margin-right:6px">маскировать PII</label>
-            <button id="btnLoadReport" class="primary">Показать</button>
-          </div>
-          <div id="reportWrap" style="margin-top:8px">
-            <iframe id="reportFrame" title="report"></iframe>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- NORMS -->
-    <section id="tab-norms" class="tabpane" style="display:none">
-      <div class="row grid-2" style="margin-top:8px">
-        <div class="card">
-          <h3>Пакеты правил</h3>
-          <div class="content">
-            <div class="right" style="margin-bottom:8px">
-              <button id="btnLoadPkgs" class="ghost">Обновить</button>
-            </div>
-            <div class="overflow" style="max-height:300px">
-              <table>
-                <thead><tr><th>Пакет</th><th>Версия</th><th>Правил</th><th></th></tr></thead>
-                <tbody id="pkgTable"><tr><td colspan="4" class="muted">Нет данных</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <h3>Правила пакета</h3>
-          <div class="content">
-            <div class="overflow" style="max-height:360px">
-              <table>
-                <thead><tr><th>ID</th><th>Профиль</th><th>Уровень</th><th>Название</th></tr></thead>
-                <tbody id="rulesTable"><tr><td colspan="4" class="muted">Не выбран пакет</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div class="card" style="grid-column:span 2">
-          <h3>Импорт rules.json</h3>
-          <div class="content">
-            <textarea id="rulesJson" placeholder='{
-  "package": "rules-pack",
-  "version": "2025-09-07",
-  "rules": [ ... ]
-}'></textarea>
-            <div class="right" style="margin-top:8px">
-              <button id="btnImportRules" class="primary">Импортировать</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- DICTS -->
-    <section id="tab-dicts" class="tabpane" style="display:none">
-      <div class="row grid-2" style="margin-top:8px">
-        <div class="card">
-          <h3>Наборы справочников</h3>
-          <div class="content">
-            <div class="right" style="margin-bottom:8px">
-              <button id="btnLoadSets" class="ghost">Обновить</button>
-            </div>
-            <div class="overflow" style="max-height:300px">
-              <table>
-                <thead><tr><th>Набор</th><th>Версия</th><th>Записей</th><th></th></tr></thead>
-                <tbody id="setsTable"><tr><td colspan="4" class="muted">Нет данных</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <h3>Записи набора</h3>
-          <div class="content">
-            <div class="overflow" style="max-height:360px">
-              <table>
-                <thead><tr><th>ID</th><th>Тип</th><th>Ключ</th><th>Норма</th><th>Яз.</th><th>ON</th></tr></thead>
-                <tbody id="itemsTable"><tr><td colspan="6" class="muted">Не выбран набор</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div class="card" style="grid-column:span 2">
-          <h3>Импорт dicts.json</h3>
-          <div class="content">
-            <textarea id="dictsJson" placeholder='{
-  "package": "dicts-core",
-  "version": "2025-09-07",
-  "items": [ ... ]
-}'></textarea>
-            <div class="right" style="margin-top:8px">
-              <button id="btnImportDicts" class="primary">Импортировать</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- toasts/busy -->
-    <div id="toast" class="toast" style="display:none"></div>
-    <div id="busy" class="busy" style="display:none">Выполняется…</div>
-  </div>
+  </main>
 
   <script>
-    // ---------- state ----------
-    const $ = (s)=>document.querySelector(s);
-    const $$ = (s)=>document.querySelectorAll(s);
-    const state = {
-      baseUrl: localStorage.getItem('medqc.baseUrl') || 'http://localhost:8000',
-      apiKey: localStorage.getItem('medqc.apiKey') || '',
-      currentDoc: null,
-      busy: false,
+    const $ = (id) => document.getElementById(id);
+    const apiBaseInput = $("apiBase");
+    const fileInput = $("file");
+    const deptInput = $("dept");
+    const sourceInput = $("source");
+    const uploadBtn = $("btnUpload");
+    const uploadResult = $("uploadResult");
+    const docIdInput = $("docId");
+    const validateBtn = $("btnValidate");
+    const reportBtn = $("btnReport");
+    const valResult = $("valResult");
+    const reportSummary = $("reportSummary");
+    const violTableWrap = $("violTableWrap");
+    const btnProbe = $("btnProbe");
+
+    // Helpers
+    const j = (x) => JSON.stringify(x, null, 2);
+    const base = () => {
+      let b = apiBaseInput.value.trim() || "/";
+      if (!b.startsWith("http")) {
+        // relative to same origin
+        if (!b.startsWith("/")) b = "/" + b;
+        // collapse trailing /
+        if (b.length > 1 && b.endsWith("/")) b = b.slice(0, -1);
+        const origin = window.location.origin;
+        return origin + b;
+      }
+      return b.replace(/\/$/, "");
     };
 
-    // ---------- init ----------
-    $('#baseUrl').value = state.baseUrl;
-    $('#apiKey').value = state.apiKey;
-    updateHealth(false);
-
-    // ---------- ui helpers ----------
-    function toast(msg, tone='ok'){
-      const t = $('#toast'); t.textContent = msg; t.className = 'toast ' + (tone==='err'?'err':'ok'); t.style.display='block';
-      setTimeout(()=>t.style.display='none', 3500);
-    }
-    function setBusy(b){
-      state.busy=b; $('#busy').style.display = b?'block':'none';
-      $$('.container button').forEach(btn => btn.disabled = b && !btn.classList.contains('always'));
-    }
-    function pill(sev){
-      const cls = sev==='critical'?'sev-critical':sev==='major'?'sev-major':'sev-minor';
-      return `<span class="pill ${cls}">${sev||'minor'}</span>`;
-    }
-    function updateHealth(ok){
-      const tag = $('#healthTag');
-      if(ok){ tag.className='badge ok'; tag.textContent='API OK'; }
-      else { tag.className='badge err'; tag.textContent='нет связи'; }
-    }
-    function showDocId(id){
-      $('#currentDoc').textContent = 'doc_id: ' + (id || '—');
-      $('#docId').value = id || '';
-      $('#docIdRpt').value = id || '';
-      $('#btnRunAll').disabled = !id;
+    function errHtml(msg, extra) {
+      const safe = (s) => ("" + s).replace(/[&<>]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[s]));
+      return `<div class="card error">
+        <div><strong>Ошибка:</strong> ${safe(msg)}</div>
+        ${extra ? `<pre class="small">${safe(extra)}</pre>` : ""}
+      </div>`;
     }
 
-    // ---------- tabs ----------
-    $$('#tabs .tab').forEach(tab=>{
-      tab.addEventListener('click', ()=>{
-        $$('#tabs .tab').forEach(t=>t.classList.remove('active'));
-        tab.classList.add('active');
-        const key = tab.dataset.tab;
-        $$('.tabpane').forEach(p=>p.style.display='none');
-        $('#tab-'+key).style.display='block';
-      })
-    });
+    function summaryKV(obj) {
+      reportSummary.innerHTML = "";
+      if (!obj) return;
+      const rows = [];
+      const push = (k, v) => rows.push(`<div class="muted">${k}</div><div>${v}</div>`);
+      if (obj.doc_id) push("doc_id", `<code>${obj.doc_id}</code>`);
+      if (obj.filename) push("Файл", obj.filename);
+      if (obj.dept) push("Подразделение", obj.dept);
+      if (obj.source) push("Источник", obj.source);
+      if (obj.total_violations != null) push("Нарушений всего", obj.total_violations);
+      if (obj.errors != null) push("Ошибок", obj.errors);
+      if (obj.warnings != null) push("Предупреждений", obj.warnings);
+      if (obj.passed != null) push("Пройдено", obj.passed ? "Да" : "Нет");
+      if (obj.created_at) push("Создано", obj.created_at);
+      reportSummary.innerHTML = `<div class="kvs">${rows.join("")}</div>`;
+    }
 
-    // ---------- API ----------
-    async function apiFetch(path, {method='GET', body=null, expect='json'}={}){
-      const url = state.baseUrl.replace(/\/$/,'') + path;
-      const headers = { 'Accept': expect==='text'?'text/html, text/plain':'application/json' };
-      if(state.apiKey) headers['X-API-Key'] = state.apiKey;
-      let payload = body;
-      if(body && !(body instanceof FormData)){
-        headers['Content-Type'] = 'application/json';
-        payload = JSON.stringify(body);
+    function renderViolations(items) {
+      if (!Array.isArray(items) || !items.length) {
+        violTableWrap.innerHTML = '<div class="muted">Нарушений не найдено.</div>';
+        return;
       }
-      const res = await fetch(url, { method, headers, body: payload });
-      if(!res.ok){
-        const t = await res.text();
-        throw new Error(`${res.status} ${res.statusText}: ${t.slice(0,800)}`);
-      }
-      return expect==='text' ? res.text() : res.json();
+      const header = `<thead><tr>
+        <th>#</th><th>Severity</th><th>Rule</th><th>Message</th><th>Page</th><th>Snippet</th>
+      </tr></thead>`;
+      const body = items.map((v, i) => {
+        const sev = (v.severity || v.level || "").toString().toUpperCase();
+        const rule = v.rule_code || v.code || v.rule || "";
+        const msg = v.message || v.msg || "";
+        const page = v.page != null ? v.page : (v.location || "");
+        const snip = v.snippet || v.text || "";
+        return `<tr>
+          <td>${i+1}</td>
+          <td class="sev-${sev}">${sev || "-"}</td>
+          <td><code>${rule}</code></td>
+          <td>${(msg+"").replace(/[&<>]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[s]))}</td>
+          <td>${page}</td>
+          <td>${(snip+"").replace(/[&<>]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[s]))}</td>
+        </tr>`;
+      }).join("");
+      violTableWrap.innerHTML = `<div class="card"><table>${header}<tbody>${body}</tbody></table></div>`;
     }
 
-    // ---------- actions: settings ----------
-    $('#btnCheck').addEventListener('click', async ()=>{
-      try { setBusy(true); await apiFetch('/v1/healthz'); updateHealth(true); toast('Подключено к API'); }
-      catch(e){ updateHealth(false); toast('Ошибка API: '+e.message, 'err'); }
-      finally{ setBusy(false); }
-    });
-    $('#btnSave').addEventListener('click', ()=>{
-      state.baseUrl = $('#baseUrl').value.trim();
-      state.apiKey  = $('#apiKey').value.trim();
-      localStorage.setItem('medqc.baseUrl', state.baseUrl);
-      localStorage.setItem('medqc.apiKey', state.apiKey);
-      toast('Сохранено'); 
-    });
+    async function probeBase() {
+      const origin = window.location.origin;
+      const tries = ["/ingest", "/v1/ingest"].map(p => origin + p);
+      for (const url of tries) {
+        try {
+          const res = await fetch(url, { method: "OPTIONS" });
+          if (res.ok || [200, 204, 405].includes(res.status)) {
+            apiBaseInput.value = new URL(url).pathname.replace(/\/ingest$/, "");
+            alert("Выбран базовый путь: " + apiBaseInput.value);
+            return;
+          }
+        } catch (e) {}
+      }
+      alert("Не удалось автоматически определить базовый путь. Укажите вручную (например, / или /v1).");
+    }
 
-    // ---------- Ingest ----------
-    $('#btnIngest').addEventListener('click', async ()=>{
-      const f = $('#file');
-      if(!f.files || !f.files[0]){ toast('Выберите файл', 'err'); return; }
+    btnProbe.addEventListener("click", probeBase);
+
+    // Upload
+    uploadBtn.addEventListener("click", async () => {
+      uploadResult.innerHTML = "";
+      const f = fileInput.files?.[0];
+      if (!f) { uploadResult.innerHTML = errHtml("Выберите файл"); return; }
+      uploadBtn.disabled = true;
+
       const fd = new FormData();
-      fd.append('file', f.files[0]);
-      const meta = { facility:$('#facility').value, dept:$('#dept').value, author:$('#author').value, admit_dt:$('#admit').value };
-      for(const [k,v] of Object.entries(meta)) if(v) fd.append(k, v);
-      try{
-        setBusy(true);
-        const res = await apiFetch('/v1/ingest', { method:'POST', body:fd });
-        state.currentDoc = res.doc_id; showDocId(res.doc_id);
-        toast('Загружено: '+res.doc_id);
-      }catch(e){ toast('Ошибка загрузки: '+e.message, 'err'); }
-      finally{ setBusy(false); }
-    });
+      fd.append("file", f);
+      const dept = deptInput.value.trim();
+      const source = sourceInput.value.trim();
+      if (dept) fd.append("dept", dept);
+      if (source) fd.append("source", source);
 
-    $('#btnRunAll').addEventListener('click', async ()=>{
-      if(!state.currentDoc){ toast('Сначала загрузите документ', 'err'); return; }
-      await runPipeline(state.currentDoc);
-    });
-
-    async function runPipeline(id){
-      try{
-        setBusy(true);
-        await apiFetch(`/v1/pipeline/${encodeURIComponent(id)}`, { method:'POST', body:{ steps:["extract","section","entities","timeline","rules","report"], report_format:"html" } });
-        toast('Pipeline OK');
-        await openDoc(id);
-      }catch(e){ toast('Pipeline error: '+e.message, 'err'); }
-      finally{ setBusy(false); }
-    }
-
-    // ---------- Doc ----------
-    $('#btnOpen').addEventListener('click', ()=> openDoc($('#docId').value.trim()));
-    $('#btnPipeline').addEventListener('click', ()=> runPipeline($('#docId').value.trim()));
-    $('#btnPipeline2').addEventListener('click', ()=> runPipeline($('#docId').value.trim()));
-    $('#btnOpenReport').addEventListener('click', ()=> { $('#docIdRpt').value=$('#docId').value; openReport(); });
-
-    async function openDoc(id){
-      if(!id){ toast('Введите doc_id', 'err'); return; }
-      try{
-        setBusy(true);
-        const info = await apiFetch(`/v1/docs/${encodeURIComponent(id)}`);
-        state.currentDoc = id; showDocId(id);
-        $('#docMetaRow').hidden = false;
-        $('#metaFacility').textContent = info.doc.facility || '—';
-        $('#metaDept').textContent = info.doc.dept || '—';
-        $('#metaAuthor').textContent = info.doc.author || '—';
-        $('#metaAdmit').textContent = info.doc.admit_dt || '—';
-        $('#cntSections').textContent = info.counts.sections;
-        $('#cntEvents').textContent = info.counts.events;
-        $('#cntEntities').textContent = info.counts.entities;
-        $('#cntViol').textContent = info.counts.violations;
-
-        // violations (если эндпоинта нет — покажем подсказку)
-        try{
-          const viol = await apiFetch(`/v1/docs/${encodeURIComponent(id)}/violations`);
-          renderViol(viol||[]);
-        }catch(e){
-          renderViol([]);
-          console.warn('violations endpoint not found?', e);
+      try {
+        const res = await fetch(base() + "/ingest", { method: "POST", body: fd });
+        const txt = await res.text();
+        let data;
+        try { data = JSON.parse(txt); } catch { data = { raw: txt }; }
+        if (!res.ok) {
+          uploadResult.innerHTML = errHtml("Ошибка загрузки", txt);
+        } else {
+          const docId = data.doc_id || data.id || data.document_id;
+          let html = `<div class="card"><div>Ответ:</div><pre class="small">${j(data)}</pre></div>`;
+          if (docId) {
+            docIdInput.value = docId;
+            html = `<div class="card"><div>Документ загружен. doc_id: <code>${docId}</code></div></div>` + html;
+          }
+          uploadResult.innerHTML = html;
         }
-
-        const ev = await apiFetch(`/v1/docs/${encodeURIComponent(id)}/events?limit=300`);
-        renderEvents(ev||[]);
-
-        const ent = await apiFetch(`/v1/docs/${encodeURIComponent(id)}/entities?limit=300`);
-        renderEntities(ent||[]);
-
-      }catch(e){ toast('Ошибка загрузки документа: '+e.message, 'err'); }
-      finally{ setBusy(false); }
-    }
-
-    function renderViol(list){
-      const tb = $('#violTable'); tb.innerHTML = '';
-      if(!list || list.length===0){ tb.innerHTML = '<tr><td colspan="3" class="muted">Нет нарушений</td></tr>'; return; }
-      for(const v of list){
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="mono">${v.rule_id||''}</td><td>${v.message||''}</td><td>${pill(v.severity||'minor')}</td>`;
-        tb.appendChild(tr);
-      }
-    }
-
-    // events filters
-    $('#btnFilterEv').addEventListener('click', async ()=>{
-      const id = $('#docId').value.trim(); if(!id) return;
-      const q = new URLSearchParams();
-      if($('#evKind').value) q.set('kind', $('#evKind').value);
-      if($('#evSince').value) q.set('since', $('#evSince').value);
-      if($('#evUntil').value) q.set('until', $('#evUntil').value);
-      try{
-        setBusy(true);
-        const ev = await apiFetch(`/v1/docs/${encodeURIComponent(id)}/events?${q.toString()}`);
-        renderEvents(ev||[]);
-      }catch(e){ toast('Ошибка фильтра событий: '+e.message, 'err'); }
-      finally{ setBusy(false); }
-    });
-
-    $('#btnResetEv').addEventListener('click', async ()=>{
-      $('#evKind').value = $('#evSince').value = $('#evUntil').value = '';
-      if(state.currentDoc) {
-        const ev = await apiFetch(`/v1/docs/${encodeURIComponent(state.currentDoc)}/events?limit=300`);
-        renderEvents(ev||[]);
+      } catch (e) {
+        uploadResult.innerHTML = errHtml(e.message || e);
+      } finally {
+        uploadBtn.disabled = false;
       }
     });
 
-    function renderEvents(list){
-      const tb = $('#evTable'); tb.innerHTML = '';
-      if(!list || list.length===0){ tb.innerHTML = '<tr><td colspan="4" class="muted">Нет данных</td></tr>'; return; }
-      for(const e of list){
-        let val = e.value_json; try { val = JSON.stringify(JSON.parse(val||'{}')) } catch {}
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${e.ts||'—'}</td><td>${e.kind||''}</td><td>${e.section_id||''}</td><td class="mono" style="word-break:break-all">${val||''}</td>`;
-        tb.appendChild(tr);
-      }
-    }
-
-    function renderEntities(list){
-      const tb = $('#entTable'); tb.innerHTML = '';
-      if(!list || list.length===0){ tb.innerHTML = '<tr><td colspan="4" class="muted">Нет данных</td></tr>'; return; }
-      for(const e of list.slice(0,50)){
-        let val = e.value_json; try { val = JSON.stringify(JSON.parse(val||'{}')) } catch {}
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${e.etype||''}</td><td>${e.section_id||''}</td><td>${e.start||''}–${e.end||''}</td><td class="mono" style="word-break:break-all">${val||''}</td>`;
-        tb.appendChild(tr);
-      }
-    }
-
-    // ---------- Report ----------
-    $('#btnLoadReport').addEventListener('click', openReport);
-    async function openReport(){
-      const id = $('#docIdRpt').value.trim(); if(!id){ toast('Введите doc_id', 'err'); return; }
-      const mask = $('#maskPii').checked ? 1 : 0;
-      try{
-        setBusy(true);
-        const html = await apiFetch(`/v1/report/${encodeURIComponent(id)}?format=html&mask=${mask}`, { expect:'text' });
-        $('#reportFrame').srcdoc = html;
-      }catch(e){ toast('Report error: '+e.message, 'err'); }
-      finally{ setBusy(false); }
-    }
-
-    // ---------- Norms ----------
-    $('#btnLoadPkgs').addEventListener('click', loadPkgs);
-    async function loadPkgs(){
-      try{
-        setBusy(true);
-        const pkgs = await apiFetch('/v1/norms/packages');
-        const tb = $('#pkgTable'); tb.innerHTML='';
-        if(!pkgs || pkgs.length===0){ tb.innerHTML = '<tr><td colspan="4" class="muted">Нет данных</td></tr>'; }
-        else{
-          for(const p of pkgs){
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${p.name}</td><td>${p.version}</td><td>${p.rules}</td><td class="right"><button class="ghost">Открыть</button></td>`;
-            tr.querySelector('button').addEventListener('click', ()=> loadRules(p.name, p.version));
-            tb.appendChild(tr);
-          }
+    // Validate
+    validateBtn.addEventListener("click", async () => {
+      valResult.innerHTML = "";
+      const id = docIdInput.value.trim();
+      if (!id) { valResult.innerHTML = errHtml("Укажите doc_id"); return; }
+      validateBtn.disabled = true;
+      try {
+        const res = await fetch(base() + "/validate/" + encodeURIComponent(id));
+        const txt = await res.text();
+        let data; try { data = JSON.parse(txt); } catch { data = { raw: txt }; }
+        if (!res.ok) {
+          valResult.innerHTML = errHtml("Ошибка проверки", txt);
+        } else {
+          valResult.innerHTML = `<div class="card"><div>Ответ:</div><pre class="small">${j(data)}</pre></div>`;
         }
-      }catch(e){ toast('Norms error: '+e.message, 'err'); }
-      finally{ setBusy(false); }
-    }
-
-    async function loadRules(name, version){
-      try{
-        setBusy(true);
-        const res = await apiFetch(`/v1/norms/packages/${encodeURIComponent(name)}/${encodeURIComponent(version)}/rules`);
-        const rules = res.rules || [];
-        const tb = $('#rulesTable'); tb.innerHTML='';
-        if(rules.length===0){ tb.innerHTML = '<tr><td colspan="4" class="muted">Нет правил</td></tr>'; }
-        else{
-          for(const r of rules){
-            const sev = r.severity || 'minor';
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td class="mono">${r.rule_id||r.id}</td><td>${r.profile||''}</td><td>${pill(sev)}</td><td>${r.title||''}</td>`;
-            tb.appendChild(tr);
-          }
-        }
-      }catch(e){ toast('Rules error: '+e.message, 'err'); }
-      finally{ setBusy(false); }
-    }
-
-    $('#btnImportRules').addEventListener('click', async ()=>{
-      const text = $('#rulesJson').value.trim();
-      if(!text){ toast('Вставьте JSON', 'err'); return; }
-      try{
-        setBusy(true);
-        await apiFetch('/v1/norms/packages', { method:'POST', body: JSON.parse(text) });
-        toast('Правила импортированы');
-        await loadPkgs();
-      }catch(e){ toast('Импорт правил: '+e.message, 'err'); }
-      finally{ setBusy(false); }
+      } catch (e) {
+        valResult.innerHTML = errHtml(e.message || e);
+      } finally {
+        validateBtn.disabled = false;
+      }
     });
 
-    // ---------- Dicts ----------
-    $('#btnLoadSets').addEventListener('click', loadSets);
-    async function loadSets(){
-      try{
-        setBusy(true);
-        const sets = await apiFetch('/v1/dicts/sets');
-        const tb = $('#setsTable'); tb.innerHTML='';
-        if(!sets || sets.length===0){ tb.innerHTML = '<tr><td colspan="4" class="muted">Нет данных</td></tr>'; }
-        else{
-          for(const s of sets){
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${s.name}</td><td>${s.version}</td><td>${s.items}</td><td class="right"><button class="ghost">Открыть</button></td>`;
-            tr.querySelector('button').addEventListener('click', ()=> loadItems(s.name, s.version));
-            tb.appendChild(tr);
-          }
+    // Report
+    reportBtn.addEventListener("click", async () => {
+      violTableWrap.innerHTML = "";
+      reportSummary.innerHTML = "";
+      const id = docIdInput.value.trim();
+      if (!id) { violTableWrap.innerHTML = errHtml("Укажите doc_id"); return; }
+      reportBtn.disabled = true;
+      try {
+        const res = await fetch(base() + "/report/" + encodeURIComponent(id));
+        const txt = await res.text();
+        let data; try { data = JSON.parse(txt); } catch { data = { raw: txt }; }
+        if (!res.ok) {
+          violTableWrap.innerHTML = errHtml("Ошибка получения отчёта", txt);
+        } else {
+          // Try common shapes
+          const metrics = data.metrics || data.summary || data.stats || null;
+          const violations = data.violations || data.items || data.findings || [];
+          summaryKV({ ...metrics, doc_id: data.doc_id || id, filename: data.filename, dept: data.dept, source: data.source });
+          renderViolations(violations);
         }
-      }catch(e){ toast('Dicts error: '+e.message, 'err'); }
-      finally{ setBusy(false); }
-    }
-
-    async function loadItems(name, version){
-      try{
-        setBusy(true);
-        const res = await apiFetch(`/v1/dicts/sets/${encodeURIComponent(name)}/${encodeURIComponent(version)}/items`);
-        const items = res.items || [];
-        const tb = $('#itemsTable'); tb.innerHTML='';
-        if(items.length===0){ tb.innerHTML = '<tr><td colspan="6" class="muted">Нет записей</td></tr>'; }
-        else{
-          for(const it of items){
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td class="mono">${it.id}</td><td>${it.dtype}</td><td class="mono" style="word-break:break-all">${it.key}</td><td class="mono" style="word-break:break-all">${it.norm||''}</td><td>${it.locale||''}</td><td>${it.enabled?'✓':'—'}</td>`;
-            tb.appendChild(tr);
-          }
-        }
-      }catch(e){ toast('Dict items error: '+e.message, 'err'); }
-      finally{ setBusy(false); }
-    }
-
-    $('#btnImportDicts').addEventListener('click', async ()=>{
-      const text = $('#dictsJson').value.trim();
-      if(!text){ toast('Вставьте JSON', 'err'); return; }
-      try{
-        setBusy(true);
-        await apiFetch('/v1/dicts/sets', { method:'POST', body: JSON.parse(text) });
-        toast('Справочники импортированы');
-        await loadSets();
-      }catch(e){ toast('Импорт справочников: '+e.message, 'err'); }
-      finally{ setBusy(false); }
+      } catch (e) {
+        violTableWrap.innerHTML = errHtml(e.message || e);
+      } finally {
+        reportBtn.disabled = false;
+      }
     });
-
-    // ---------- quick connect on load ----------
-    (async ()=>{ try{ await apiFetch('/v1/healthz'); updateHealth(true); } catch(e){ updateHealth(false);} })();
   </script>
 </body>
 </html>
